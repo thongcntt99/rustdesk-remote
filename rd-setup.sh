@@ -11,6 +11,8 @@
 #   RD_SERVER     Địa chỉ relay/ID server tự host (bỏ trống = dùng server công cộng)
 #   RD_KEY        Public key của server tự host (đi kèm RD_SERVER)
 #   RD_NO_PMSET=1 Không tắt chế độ ngủ của máy
+#   RD_NO_HOSTS_PIN=1  Không tự ghim IP rs-ny.rustdesk.com vào /etc/hosts khi DNS bị chặn
+#   RD_RS_IP      IP thật của rs-ny.rustdesk.com (mặc định 209.250.254.15) dùng khi ghim
 #
 # Script sẽ:
 #   1. Tải RustDesk đúng kiến trúc (Apple Silicon / Intel) và cài vào /Applications
@@ -22,7 +24,7 @@
 #   7. In ra ID ⇥ Tên ⇥ Mật khẩu để dán vào Google Sheet
 # =============================================================================
 set -euo pipefail
-RD_SETUP_VERSION="2026-08-28.4"
+RD_SETUP_VERSION="2026-08-28.5"
 
 # ---------- màu & log ----------
 if [ -t 1 ]; then
@@ -128,6 +130,29 @@ scutil --set HostName      "$HOST_SAFE"
 scutil --set LocalHostName "$HOST_SAFE"
 dscacheutil -flushcache >/dev/null 2>&1 || true
 log "Đặt tên máy: $MACHINE_NAME (hostname: $HOST_SAFE)"
+
+# ---------- 2b. mạng chặn DNS rustdesk.com? → ghim IP thật vào /etc/hosts ----------
+# Một số mạng trả về IP giả (vd. 0.0.1.138) cho *.rustdesk.com. Nếu vậy, ghim IP thật để app đăng ký được.
+RD_RS_HOST="rs-ny.rustdesk.com"
+RD_RS_IP="${RD_RS_IP:-209.250.254.15}"
+if [ -z "${RD_SERVER:-}" ] && [ "${RD_NO_HOSTS_PIN:-0}" != "1" ]; then
+  RESOLVED="$(dig +short +time=3 +tries=1 "$RD_RS_HOST" 2>/dev/null | grep -E '^[0-9]+\.' | head -n1 || true)"
+  case "$RESOLVED" in
+    "$RD_RS_IP") log "DNS phân giải $RD_RS_HOST đúng ($RESOLVED)." ;;
+    ""|0.*|127.*)
+      if grep -q "$RD_RS_HOST" /etc/hosts 2>/dev/null; then
+        log "$RD_RS_HOST đã được ghim trong /etc/hosts."
+      else
+        warn "DNS trả về '${RESOLVED:-rỗng}' cho $RD_RS_HOST (mạng chặn). Ghim $RD_RS_IP vào /etc/hosts."
+        printf '%s %s
+' "$RD_RS_IP" "$RD_RS_HOST" >> /etc/hosts
+        dscacheutil -flushcache >/dev/null 2>&1 || true
+        killall -HUP mDNSResponder >/dev/null 2>&1 || true
+      fi ;;
+    *) log "DNS phân giải $RD_RS_HOST = $RESOLVED (khác IP đã biết, giữ nguyên)." ;;
+  esac
+  nc -z -w 5 "$RD_RS_IP" 21116 >/dev/null 2>&1 && log "Kết nối TCP tới $RD_RS_IP:21116 OK."     || warn "Không kết nối được $RD_RS_IP:21116 — mạng có thể chặn cả IP; cân nhắc tự dựng server (RD_SERVER)."
+fi
 
 # ---------- 3. mật khẩu & server ----------
 if [ -n "${RD_PASSWORD:-}" ]; then
