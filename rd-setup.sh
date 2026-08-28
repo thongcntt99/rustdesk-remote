@@ -32,6 +32,7 @@ fi
 log()  { printf '%s[+]%s %s\n' "$C_G" "$C_0" "$*"; }
 warn() { printf '%s[!]%s %s\n' "$C_Y" "$C_0" "$*"; }
 die()  { printf '%s[x]%s %s\n' "$C_R" "$C_0" "$*" >&2; exit 1; }
+trap 'die "Script dừng tại dòng $LINENO (lệnh: $BASH_COMMAND). Gửi ảnh màn hình này để được hỗ trợ."' ERR
 
 # ---------- kiểm tra điều kiện ----------
 [ "$(uname -s)" = "Darwin" ] || die "Script này chỉ chạy trên macOS."
@@ -132,7 +133,9 @@ if [ -n "${RD_PASSWORD:-}" ]; then
   PASSWORD="$RD_PASSWORD"
 else
   # 12 ký tự chữ + số, tránh ký tự dễ nhầm (0/O, 1/l/I)
-  PASSWORD="$(LC_ALL=C tr -dc 'A-HJ-NP-Za-km-z2-9' </dev/urandom | head -c 12)"
+  # head đọc trước một khối cố định để không SIGPIPE tr (set -o pipefail sẽ làm script thoát)
+  PASSWORD="$(head -c 512 /dev/urandom | LC_ALL=C tr -dc 'A-HJ-NP-Za-km-z2-9' | cut -c1-12)"
+  [ "${#PASSWORD}" -eq 12 ] || die "Không sinh được mật khẩu ngẫu nhiên. Chạy lại với RD_PASSWORD=<mật khẩu>."
 fi
 
 if [ -n "${RD_SERVER:-}" ]; then
