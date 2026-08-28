@@ -1,17 +1,18 @@
 ﻿<#
 .SYNOPSIS
-  Áp thiết lập phiên tối ưu (Translate mode, VP9, 15 FPS, chất lượng 50%) cho mọi máy Mac trong machines.csv
+  Áp thiết lập phiên tối ưu (Map mode + Swap Ctrl↔Cmd, VP9, 15 FPS, chất lượng 50%) cho mọi máy Mac trong machines.csv
   và mọi peer đã từng kết nối. Chạy trên Windows, KHI KHÔNG CÓ PHIÊN NÀO ĐANG MỞ (RustDesk ghi đè file peer lúc đóng phiên).
 
 .EXAMPLE
   .\tune.ps1                 # áp cho tất cả
   .\tune.ps1 413615288       # áp cho 1 ID
-  .\tune.ps1 -Mode map       # đổi lại Map mode
+  .\tune.ps1 -Mode translate -NoSwap   # dùng Translate mode thay vì Map+Swap
 #>
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)] [string] $Id,
-    [ValidateSet('translate', 'map', 'legacy')] [string] $Mode = 'translate',
+    [ValidateSet('translate', 'map', 'legacy')] [string] $Mode = 'map',
+    [switch] $NoSwap,
     [ValidateSet('auto', 'vp8', 'vp9', 'av1', 'h264', 'h265')] [string] $Codec = 'vp9',
     [int] $Fps = 15,
     [int] $Quality = 50,
@@ -46,13 +47,14 @@ function Tune-Peer([string]$peerId) {
     $file = Join-Path $peersDir "$peerId.toml"
     $lines = if (Test-Path $file) { @(Get-Content $file -Encoding UTF8) } else { @() }
     $lines = Set-TopLevel $lines 'keyboard_mode'        "'$Mode'"
+    $lines = Set-TopLevel $lines 'allow_swap_key'       $(if ($NoSwap) { 'false' } else { 'true' })
     $lines = Set-TopLevel $lines 'image_quality'        "'custom'"
     $lines = Set-TopLevel $lines 'custom_image_quality' "[$Quality]"
     $lines = Set-TopLevel $lines 'show_remote_cursor'   'false'
     $lines = Set-Option   $lines 'codec-preference'     "'$Codec'"
     $lines = Set-Option   $lines 'custom-fps'           "'$Fps'"
     [IO.File]::WriteAllLines($file, [string[]]$lines, [Text.UTF8Encoding]::new($false))
-    Write-Host ("  {0,-12} keyboard={1} codec={2} fps={3} quality={4}%" -f $peerId, $Mode, $Codec, $Fps, $Quality)
+    Write-Host ("  {0,-12} keyboard={1} swap={2} codec={3} fps={4} quality={5}%" -f $peerId, $Mode, (-not $NoSwap), $Codec, $Fps, $Quality)
 }
 
 # ---- danh sách ID ----
