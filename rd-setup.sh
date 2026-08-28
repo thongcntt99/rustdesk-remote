@@ -22,7 +22,7 @@
 #   7. In ra ID ⇥ Tên ⇥ Mật khẩu để dán vào Google Sheet
 # =============================================================================
 set -euo pipefail
-RD_SETUP_VERSION="2026-08-28.3"
+RD_SETUP_VERSION="2026-08-28.4"
 
 # ---------- màu & log ----------
 if [ -t 1 ]; then
@@ -172,10 +172,29 @@ fi
 
 # ---------- 6. khởi động app & mở cửa sổ Privacy ----------
 log "Mở RustDesk ..."
-as_gui_user open -a "$APP" >/dev/null 2>&1 || warn "Không mở được app, hãy mở tay từ /Applications."
-sleep 3
+rd_running() { pgrep -x RustDesk >/dev/null 2>&1; }
+# Thử lần lượt 3 cách mở app trong phiên GUI của user, cách nào giữ được app chạy thì dừng
+launch_rd() {
+  local attempt
+  for attempt in 1 2 3; do
+    case "$attempt" in
+      1) launchctl asuser "$CONSOLE_UID" open -a "$APP" >/dev/null 2>&1 || true ;;
+      2) sudo -u "$CONSOLE_USER" open -a "$APP" >/dev/null 2>&1 || true ;;
+      3) launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" -H env HOME="$USER_HOME" "$RD" >/dev/null 2>&1 & ;;
+    esac
+    sleep 4
+    if rd_running; then return 0; fi
+  done
+  return 1
+}
+if launch_rd; then
+  log "RustDesk đang chạy (PID $(pgrep -x RustDesk | head -n1))."
+else
+  warn "RustDesk KHÔNG chạy được. Mở tay: Finder → Applications → RustDesk. Nếu vẫn không lên, chạy lệnh sau để xem lỗi:"
+  warn "  $RD"
+fi
 
-log "Mở 3 cửa sổ Privacy — hãy GẠT CÔNG TẮC RustDesk ở cả 3:"
+log "Mở 3 cửa sổ Privacy — hãy GẠT CÔNG TẮC RustDesk ở cả 3 (nếu chưa thấy dòng RustDesk: bấm + → Applications → RustDesk):"
 for pane in Privacy_ScreenCapture Privacy_Accessibility Privacy_ListenEvent; do
   as_gui_user open "x-apple.systempreferences:com.apple.preference.security?${pane}" >/dev/null 2>&1 || true
   sleep 1
@@ -200,6 +219,7 @@ echo "  ID        : ${RD_ID}"
 echo "  Tên máy   : ${MACHINE_NAME}"
 echo "  Mật khẩu  : ${PASSWORD}"
 echo "  FileVault : ${FV}"
+if rd_running; then echo "  App       : đang chạy"; else echo "  App       : ${C_R}KHÔNG chạy${C_0} → mở tay từ Applications, nếu không Windows sẽ báo offline"; fi
 echo
 echo "Việc cần làm tay:"
 echo "  1. Gạt công tắc RustDesk trong 3 cửa sổ Privacy vừa mở (Screen Recording, Accessibility, Input Monitoring)."
