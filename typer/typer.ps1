@@ -23,17 +23,45 @@ public static class Typer {
     [DllImport("user32.dll", SetLastError = true)] static extern uint SendInput(uint n, INPUT[] inputs, int size);
     [DllImport("user32.dll")] public static extern short GetAsyncKeyState(int vKey);
 
-    static void Send(ushort vk, ushort scan, uint flags) {
-        var down = new INPUT { type = INPUT_KEYBOARD };
-        down.u.ki = new KEYBDINPUT { wVk = vk, wScan = scan, dwFlags = flags };
-        var up = down; up.u.ki.dwFlags = flags | KEYEVENTF_KEYUP;
-        SendInput(2, new[] { down, up }, Marshal.SizeOf(typeof(INPUT)));
+    [DllImport("user32.dll")] static extern short VkKeyScanW(char ch);
+    [DllImport("user32.dll")] static extern uint MapVirtualKeyW(uint code, uint mapType);
+    const uint KEYEVENTF_EXTENDEDKEY = 1;
+
+    static INPUT Make(ushort vk, ushort scan, uint flags) {
+        var i = new INPUT { type = INPUT_KEYBOARD };
+        i.u.ki = new KEYBDINPUT { wVk = vk, wScan = scan, dwFlags = flags };
+        return i;
+    }
+    // Gõ một phím vật lý (VK + scancode) kèm modifier — cách mà RustDesk/AnyDesk/VNC hiểu đúng
+    static void Key(ushort vk, bool shift, bool ctrl, bool alt) {
+        ushort scan = (ushort)MapVirtualKeyW(vk, 0);
+        uint ext = 0;
+        switch (vk) { case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27: case 0x28: case 0x2D: case 0x2E: ext = KEYEVENTF_EXTENDEDKEY; break; }
+        var list = new System.Collections.Generic.List<INPUT>();
+        if (shift) list.Add(Make(0x10, 0x2A, 0));
+        if (ctrl)  list.Add(Make(0x11, 0x1D, 0));
+        if (alt)   list.Add(Make(0x12, 0x38, 0));
+        list.Add(Make(vk, scan, ext));
+        list.Add(Make(vk, scan, ext | KEYEVENTF_KEYUP));
+        if (alt)   list.Add(Make(0x12, 0x38, KEYEVENTF_KEYUP));
+        if (ctrl)  list.Add(Make(0x11, 0x1D, KEYEVENTF_KEYUP));
+        if (shift) list.Add(Make(0x10, 0x2A, KEYEVENTF_KEYUP));
+        var arr = list.ToArray();
+        SendInput((uint)arr.Length, arr, Marshal.SizeOf(typeof(INPUT)));
+    }
+    static void Unicode(char c) {
+        var arr = new[] { Make(0, c, KEYEVENTF_UNICODE), Make(0, c, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP) };
+        SendInput(2, arr, Marshal.SizeOf(typeof(INPUT)));
     }
     public static void Char(char c) {
-        if (c == '\n') Send(0x0D, 0, 0);            // Enter
-        else if (c == '\t') Send(0x09, 0, 0);       // Tab
-        else if (c == '\r') return;
-        else Send(0, c, KEYEVENTF_UNICODE);
+        if (c == '\r') return;
+        if (c == '\n') { Key(0x0D, false, false, false); return; }   // Enter
+        if (c == '\t') { Key(0x09, false, false, false); return; }   // Tab
+        short r = VkKeyScanW(c);
+        if (r == -1) { Unicode(c); return; }   // ký tự không có trên layout (vd. chữ có dấu)
+        ushort vk = (ushort)(r & 0xFF);
+        int mods = (r >> 8) & 0xFF;
+        Key(vk, (mods & 1) != 0, (mods & 2) != 0, (mods & 4) != 0);
     }
     public static bool EscDown() { return (GetAsyncKeyState(0x1B) & 0x8000) != 0; }
 }
@@ -101,7 +129,10 @@ $lblStatus.ForeColor = [System.Drawing.Color]::DimGray
 $lblStatus.Location = New-Object System.Drawing.Point(8, 106)
 $lblStatus.Size = New-Object System.Drawing.Size(404, 18)
 
-$txt.Add_KeyDown({ if ($_.Control -and $_.KeyCode -eq "Return") { $_.SuppressKeyPress = $true; $btn.PerformClick() } })
+$txt.Add_KeyDown({
+    if ($_.Control -and $_.KeyCode -eq "A")      { $txt.SelectAll(); $_.SuppressKeyPress = $true }
+    elseif ($_.Control -and $_.KeyCode -eq "Return") { $_.SuppressKeyPress = $true; $btn.PerformClick() }
+})
 $form.Controls.AddRange(@($txt, $lblDelay, $numDelay, $lblSec, $lblSpeed, $numSpeed, $chkEnter, $btn, $lblStatus))
 
 # ---- Logic ----

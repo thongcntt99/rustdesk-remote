@@ -90,7 +90,12 @@ Bấm đúp `typer\typer.cmd` (không cần cài gì, dùng PowerShell có sẵn
 3. Bấm **Bắt đầu** (hoặc **Ctrl+Enter**), rồi click vào cửa sổ đích (phiên RustDesk) trước khi hết giờ đếm ngược.
 4. Giữ **Esc** nếu muốn dừng giữa chừng.
 
-Gõ qua `SendInput` Unicode nên gõ được tiếng Việt và mọi ký tự đặc biệt nguyên văn. Tick **Enter cuối** để nhấn thêm Enter sau khi gõ xong.
+Cách gõ: mỗi ký tự được gửi như **một phím bấm thật** (mã phím + scancode + Shift nếu cần) nên RustDesk/AnyDesk/VNC chuyển sang máy Mac đúng như người gõ. Tick **Enter cuối** để nhấn thêm Enter sau khi gõ xong.
+
+**Lưu ý quan trọng:**
+- **Tắt bộ gõ tiếng Việt (UniKey/EVKey…) trên Windows** trước khi bấm Bắt đầu — nếu không nó sẽ biến đổi phím (vd. Telex: `[`→ơ, `aa`→â) y như khi bạn gõ tay.
+- Ký tự **không có trên bàn phím** (chữ có dấu như `ệ`, `ơ`) không thể gửi thành phím bấm thật; qua RustDesk sẽ không ra đúng. Nội dung gửi sang Mac nên dùng chữ không dấu / lệnh terminal.
+- Trong phiên RustDesk nên để **Keyboard → Map mode** để phím bên Windows ánh xạ 1:1 sang Mac.
 
 ---
 
