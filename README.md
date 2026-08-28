@@ -7,6 +7,7 @@ Bộ file này giúp cài RustDesk lên từng máy Mac bằng **một dòng l�
 | [rd-setup.sh](rd-setup.sh) | Mac | Cài RustDesk, đặt tên máy, đặt mật khẩu cố định, tắt ngủ, mở cửa sổ Privacy, in ra ID/Tên/Mật khẩu |
 | [machines.example.csv](machines.example.csv) | Windows | Mẫu bảng ID / Tên máy / Mật khẩu — sao chép thành `machines.csv` (file này bị `.gitignore`, không bao giờ lên repo Public) |
 | [connect.ps1](connect.ps1) | Windows | Chọn máy trong bảng và mở phiên RustDesk tới máy đó |
+| [typer/typer.cmd](typer/typer.cmd) | Windows | Auto Typer: nhập 1 đoạn, chọn delay & tốc độ, bấm nút → gõ phím vào cửa sổ đang mở (vd. phiên RustDesk) |
 
 ---
 
@@ -79,6 +80,17 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 .\connect.ps1 Mac-01       # kết nối thẳng theo tên
 .\connect.ps1 -All         # mở tất cả máy trong bảng
 ```
+
+### Auto Typer (gõ chữ tự động vào phiên RustDesk)
+
+Bấm đúp `typer	yper.cmd` (không cần cài gì, dùng PowerShell có sẵn):
+
+1. Nhập nội dung cần gõ (nhiều dòng cũng được).
+2. Chọn **Chờ (giây)** — mặc định 5 — và **Tốc độ 1–10** (10 nhanh nhất ≈ 30 ms/ký tự, 1 chậm nhất ≈ 300 ms/ký tự).
+3. Bấm **Bắt đầu**, rồi click vào cửa sổ đích (phiên RustDesk) trước khi hết giờ đếm ngược.
+4. Giữ **Esc** nếu muốn dừng giữa chừng.
+
+Gõ qua `SendInput` Unicode nên gõ được tiếng Việt và mọi ký tự đặc biệt nguyên văn; Tab/Enter trong nội dung được gửi thành phím Tab/Enter.
 
 ---
 
