@@ -83,7 +83,7 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 
 ### Auto Typer (gõ chữ tự động vào phiên RustDesk)
 
-Bấm đúp `typer	yper.cmd` (không cần cài gì, dùng PowerShell có sẵn):
+Bấm đúp `typer\typer.cmd` (không cần cài gì, dùng PowerShell có sẵn):
 
 1. Nhập nội dung cần gõ (nhiều dòng cũng được).
 2. Chọn **Chờ (giây)** — mặc định 5 — và **Tốc độ 1–10** (10 nhanh nhất ≈ 30 ms/ký tự, 1 chậm nhất ≈ 300 ms/ký tự).
