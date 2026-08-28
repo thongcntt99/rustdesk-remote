@@ -42,7 +42,7 @@ public static class Typer {
 # ---- GUI ----
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Auto Typer"
-$form.ClientSize = New-Object System.Drawing.Size(420, 96)
+$form.ClientSize = New-Object System.Drawing.Size(420, 132)
 $form.StartPosition = "Manual"
 $wa = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea   # vùng màn hình trừ taskbar
 $form.Add_Load({ $form.Location = New-Object System.Drawing.Point(($wa.Right - $form.Width - 8), ($wa.Bottom - $form.Height - 8)) })
@@ -51,52 +51,57 @@ $form.TopMost = $true
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 
 $txt = New-Object System.Windows.Forms.TextBox
+$txt.Multiline = $true
+$txt.AcceptsReturn = $true
+$txt.AcceptsTab = $true
+$txt.ScrollBars = "Vertical"
+$txt.WordWrap = $false
 $txt.Location = New-Object System.Drawing.Point(8, 8)
-$txt.Size = New-Object System.Drawing.Size(404, 23)
+$txt.Size = New-Object System.Drawing.Size(404, 58)
 $txt.Text = "type-this-line"
 
 $lblDelay = New-Object System.Windows.Forms.Label
 $lblDelay.Text = "Chờ"
-$lblDelay.Location = New-Object System.Drawing.Point(8, 41)
+$lblDelay.Location = New-Object System.Drawing.Point(8, 77)
 $lblDelay.AutoSize = $true
 
 $numDelay = New-Object System.Windows.Forms.NumericUpDown
-$numDelay.Location = New-Object System.Drawing.Point(38, 37)
+$numDelay.Location = New-Object System.Drawing.Point(38, 73)
 $numDelay.Size = New-Object System.Drawing.Size(46, 23)
 $numDelay.Minimum = 0; $numDelay.Maximum = 60; $numDelay.Value = 5
 
 $lblSec = New-Object System.Windows.Forms.Label
 $lblSec.Text = "s"
-$lblSec.Location = New-Object System.Drawing.Point(86, 41)
+$lblSec.Location = New-Object System.Drawing.Point(86, 77)
 $lblSec.AutoSize = $true
 
 $lblSpeed = New-Object System.Windows.Forms.Label
 $lblSpeed.Text = "Tốc độ"
-$lblSpeed.Location = New-Object System.Drawing.Point(108, 41)
+$lblSpeed.Location = New-Object System.Drawing.Point(108, 77)
 $lblSpeed.AutoSize = $true
 
 $numSpeed = New-Object System.Windows.Forms.NumericUpDown
-$numSpeed.Location = New-Object System.Drawing.Point(156, 37)
+$numSpeed.Location = New-Object System.Drawing.Point(156, 73)
 $numSpeed.Size = New-Object System.Drawing.Size(46, 23)
 $numSpeed.Minimum = 1; $numSpeed.Maximum = 10; $numSpeed.Value = 5
 
 $chkEnter = New-Object System.Windows.Forms.CheckBox
-$chkEnter.Text = "Enter"
-$chkEnter.Location = New-Object System.Drawing.Point(214, 39)
+$chkEnter.Text = "Enter cuối"
+$chkEnter.Location = New-Object System.Drawing.Point(214, 75)
 $chkEnter.AutoSize = $true
 
 $btn = New-Object System.Windows.Forms.Button
 $btn.Text = "Bắt đầu"
-$btn.Location = New-Object System.Drawing.Point(330, 35)
+$btn.Location = New-Object System.Drawing.Point(330, 71)
 $btn.Size = New-Object System.Drawing.Size(82, 26)
 
 $lblStatus = New-Object System.Windows.Forms.Label
-$lblStatus.Text = "Bấm Bắt đầu rồi click vào cửa sổ đích. Giữ Esc để dừng."
+$lblStatus.Text = "Ctrl+Enter = Bắt đầu · click vào cửa sổ đích khi đếm ngược · Esc = dừng"
 $lblStatus.ForeColor = [System.Drawing.Color]::DimGray
-$lblStatus.Location = New-Object System.Drawing.Point(8, 70)
+$lblStatus.Location = New-Object System.Drawing.Point(8, 106)
 $lblStatus.Size = New-Object System.Drawing.Size(404, 18)
 
-$form.AcceptButton = $btn
+$txt.Add_KeyDown({ if ($_.Control -and $_.KeyCode -eq "Return") { $_.SuppressKeyPress = $true; $btn.PerformClick() } })
 $form.Controls.AddRange(@($txt, $lblDelay, $numDelay, $lblSec, $lblSpeed, $numSpeed, $chkEnter, $btn, $lblStatus))
 
 # ---- Logic ----
