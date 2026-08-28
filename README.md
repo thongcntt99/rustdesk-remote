@@ -86,7 +86,7 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 Bấm đúp `typer\typer.cmd` (không cần cài gì, dùng PowerShell có sẵn):
 
 1. Cửa sổ nhỏ hiện ở góc dưới bên phải màn hình. Nhập nội dung cần gõ vào ô trên cùng — **nhiều dòng được**, mỗi xuống dòng sẽ gõ thành phím Enter; Tab cũng gõ thành phím Tab.
-2. Chọn **Chờ (giây)** — mặc định 5 — và **Tốc độ 1–10** (10 nhanh nhất ≈ 30 ms/ký tự, 1 chậm nhất ≈ 300 ms/ký tự).
+2. Chọn **Chờ (giây)** — mặc định 5 — và **Tốc độ 1–10** — mặc định 8 (10 nhanh nhất ≈ 30 ms/ký tự, 1 chậm nhất ≈ 300 ms/ký tự).
 3. Bấm **Bắt đầu** (hoặc **Ctrl+Enter**), rồi click vào cửa sổ đích (phiên RustDesk) trước khi hết giờ đếm ngược.
 4. Giữ **Esc** nếu muốn dừng giữa chừng.
 

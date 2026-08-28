@@ -83,7 +83,7 @@ $lblSpeed.AutoSize = $true
 $numSpeed = New-Object System.Windows.Forms.NumericUpDown
 $numSpeed.Location = New-Object System.Drawing.Point(156, 73)
 $numSpeed.Size = New-Object System.Drawing.Size(46, 23)
-$numSpeed.Minimum = 1; $numSpeed.Maximum = 10; $numSpeed.Value = 5
+$numSpeed.Minimum = 1; $numSpeed.Maximum = 10; $numSpeed.Value = 8
 
 $chkEnter = New-Object System.Windows.Forms.CheckBox
 $chkEnter.Text = "Enter cuối"
