@@ -49,7 +49,7 @@ if (-not $rows) { Write-Error "machines.csv chưa có dòng nào. Dán các dòn
 function Connect-Machine($m) {
     Write-Host ("→ {0}  (ID {1})" -f $m.Name, $m.Id) -ForegroundColor Green
     $tune = Join-Path $PSScriptRoot 'tune.ps1'
-    if (Test-Path $tune) { & $tune $m.Id 3>$null | Out-Null }   # Translate mode, VP9, 15 FPS trước khi mở phiên
+    if (Test-Path $tune) { & $tune $m.Id 3>$null | Out-Null }   # Map+Swap, VP9, 5 FPS, 10% trước khi mở phiên
     $rdArgs = @('--connect', $m.Id)
     if ($m.Password) { $rdArgs += @('--password', $m.Password) }
     Start-Process -FilePath $rd -ArgumentList $rdArgs

@@ -7,7 +7,7 @@ Bộ file này giúp cài RustDesk lên từng máy Mac bằng **một dòng l�
 | [rd-setup.sh](rd-setup.sh) | Mac | Cài RustDesk, đặt tên máy, đặt mật khẩu cố định, tắt ngủ, mở cửa sổ Privacy, in ra ID/Tên/Mật khẩu |
 | [machines.example.csv](machines.example.csv) | Windows | Mẫu bảng ID / Tên máy / Mật khẩu — sao chép thành `machines.csv` (file này bị `.gitignore`, không bao giờ lên repo Public) |
 | [connect.ps1](connect.ps1) | Windows | Chọn máy trong bảng và mở phiên RustDesk tới máy đó |
-| [tune.ps1](tune.ps1) | Windows | Áp Map mode + Swap Ctrl↔Cmd + VP9 + 15 FPS + chất lượng 50% cho mọi máy trong bảng (connect.ps1 tự gọi) |
+| [tune.ps1](tune.ps1) | Windows | Áp Map mode + Swap Ctrl↔Cmd + VP9 + 5 FPS + chất lượng 10% cho mọi máy trong bảng (connect.ps1 tự gọi) |
 | [typer/typer.cmd](typer/typer.cmd) | Windows | Auto Typer: nhập 1 đoạn, chọn delay & tốc độ, bấm nút → gõ phím vào cửa sổ đang mở (vd. phiên RustDesk) |
 
 ---
@@ -76,9 +76,9 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 13. Với mỗi dòng trong Sheet: nhập **ID → Connect → dán mật khẩu → tick Remember password**.
 14. Kết nối được rồi thì bấm **ngôi sao** để ghim máy đó vào danh sách.
 15. Trong phiên, mở thanh công cụ → **Keyboard**: chọn **Map mode** và tick **Swap control-command key** → Ctrl+C/V/A/Z trên Windows thành Cmd+… trên Mac, các phím khác 1:1. Trong Terminal của Mac, muốn ngắt lệnh (Ctrl+C thật) thì bấm **Win+C**.
-16. Tối ưu hình: Display → Codec **VP9** (tránh AV1 trên Mac Intel), **Custom** quality ~50%, **FPS 15**, tick Adaptive bitrate; nếu Mac độ phân giải cao, Display → Resolution → 1920×1080.
+16. Tối ưu hình: Display → Codec **VP9** (tránh AV1 trên Mac Intel), **Custom** quality **10%**, **FPS 5**, tick Adaptive bitrate; nếu Mac độ phân giải cao, Display → Resolution → 1920×1080. (Mức thấp này đủ cho thao tác văn bản/terminal và phản hồi nhanh nhất; cần xem hình thì tăng tạm trong phiên.)
 
-**Áp 15–16 cho tất cả máy một lượt:** đóng mọi phiên đang mở, rồi chạy `.\tune.ps1` — nó ghi Map mode + Swap Ctrl↔Cmd / VP9 / 15 FPS / 50% vào cấu hình từng máy trong `machines.csv` (và mọi máy đã từng kết nối). `connect.ps1` cũng tự gọi `tune.ps1` trước khi mở phiên, nên dùng `connect.ps1` là không cần làm tay. Đổi lại: `.\tune.ps1 -Mode translate -NoSwap` hoặc `.\tune.ps1 -Codec auto -Fps 30`.
+**Áp 15–16 cho tất cả máy một lượt:** đóng mọi phiên đang mở, rồi chạy `.\tune.ps1` — nó ghi Map mode + Swap Ctrl↔Cmd / VP9 / 5 FPS / 10% vào cấu hình từng máy trong `machines.csv` (và mọi máy đã từng kết nối). `connect.ps1` cũng tự gọi `tune.ps1` trước khi mở phiên, nên dùng `connect.ps1` là không cần làm tay. Đổi lại: `.\tune.ps1 -Mode translate -NoSwap` hoặc `.\tune.ps1 -Codec auto -Fps 30`.
 
 **Cách nhanh hơn với `connect.ps1`:** điền `machines.csv`, rồi trong PowerShell:
 

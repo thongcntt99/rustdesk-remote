@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Áp thiết lập phiên tối ưu (Map mode + Swap Ctrl↔Cmd, VP9, 15 FPS, chất lượng 50%) cho mọi máy Mac trong machines.csv
+  Áp thiết lập phiên tối ưu (Map mode + Swap Ctrl↔Cmd, VP9, 5 FPS, chất lượng 10%) cho mọi máy Mac trong machines.csv
   và mọi peer đã từng kết nối. Chạy trên Windows, KHI KHÔNG CÓ PHIÊN NÀO ĐANG MỞ (RustDesk ghi đè file peer lúc đóng phiên).
 
 .EXAMPLE
@@ -14,8 +14,8 @@ param(
     [ValidateSet('translate', 'map', 'legacy')] [string] $Mode = 'map',
     [switch] $NoSwap,
     [ValidateSet('auto', 'vp8', 'vp9', 'av1', 'h264', 'h265')] [string] $Codec = 'vp9',
-    [int] $Fps = 15,
-    [int] $Quality = 50,
+    [int] $Fps = 5,
+    [int] $Quality = 10,
     [string] $Csv = (Join-Path $PSScriptRoot 'machines.csv')
 )
 $ErrorActionPreference = 'Stop'
