@@ -8,8 +8,8 @@
 # Tuỳ chọn qua biến môi trường (đặt sau sudo, ví dụ: ... | sudo RD_PASSWORD=abc bash -s -- Mac-01):
 #   RD_PASSWORD   Mật khẩu cố định muốn đặt (mặc định: tự sinh 12 ký tự)
 #   RD_VERSION    Phiên bản RustDesk cụ thể, ví dụ 1.4.0 (mặc định: bản mới nhất)
-#   RD_SERVER     Địa chỉ relay/ID server tự host (bỏ trống = dùng server công cộng)
-#   RD_KEY        Public key của server tự host (đi kèm RD_SERVER)
+#   RD_SERVER     ID/relay server riêng (mặc định: 45.77.71.138; đặt RD_SERVER="" để dùng server công cộng)
+#   RD_KEY        Public key của server riêng (mặc định: key của server trên)
 #   RD_NO_PMSET=1 Không tắt chế độ ngủ của máy
 #   RD_NO_HOSTS_PIN=1  Không tự ghim IP rs-ny.rustdesk.com vào /etc/hosts khi DNS bị chặn
 #   RD_RS_IP      IP thật của rs-ny.rustdesk.com (mặc định 209.250.254.15) dùng khi ghim
@@ -24,7 +24,10 @@
 #   7. In ra ID ⇥ Tên ⇥ Mật khẩu để dán vào Google Sheet
 # =============================================================================
 set -euo pipefail
-RD_SETUP_VERSION="2026-08-28.5"
+RD_SETUP_VERSION="2026-08-28.6"
+# ---- Server RustDesk riêng (mặc định). Để trống RD_SERVER nếu muốn dùng server công cộng. ----
+RD_SERVER="${RD_SERVER-45.77.71.138}"
+RD_KEY="${RD_KEY-noUsY6djm6ymHXXS4vYyqNwNhgmXePerJa6TlPI62BU=}"
 
 # ---------- màu & log ----------
 if [ -t 1 ]; then
@@ -154,27 +157,14 @@ if [ -z "${RD_SERVER:-}" ] && [ "${RD_NO_HOSTS_PIN:-0}" != "1" ]; then
   nc -z -w 5 "$RD_RS_IP" 21116 >/dev/null 2>&1 && log "Kết nối TCP tới $RD_RS_IP:21116 OK."     || warn "Không kết nối được $RD_RS_IP:21116 — mạng có thể chặn cả IP; cân nhắc tự dựng server (RD_SERVER)."
 fi
 
-# ---------- 3. mật khẩu & server ----------
+# ---------- 3. sinh mật khẩu (ghi vào cấu hình ở bước 6, sau khi app đã tạo file) ----------
 if [ -n "${RD_PASSWORD:-}" ]; then
   PASSWORD="$RD_PASSWORD"
 else
-  # 12 ký tự chữ + số, tránh ký tự dễ nhầm (0/O, 1/l/I)
   # head đọc trước một khối cố định để không SIGPIPE tr (set -o pipefail sẽ làm script thoát)
   PASSWORD="$(head -c 512 /dev/urandom | LC_ALL=C tr -dc 'A-HJ-NP-Za-km-z2-9' | cut -c1-12)"
   [ "${#PASSWORD}" -eq 12 ] || die "Không sinh được mật khẩu ngẫu nhiên. Chạy lại với RD_PASSWORD=<mật khẩu>."
 fi
-
-if [ -n "${RD_SERVER:-}" ]; then
-  log "Trỏ về server riêng: $RD_SERVER"
-  if [ -n "${RD_KEY:-}" ]; then
-    as_user "$RD" --config "host=${RD_SERVER},key=${RD_KEY}" >/dev/null 2>&1 || warn "Không đặt được server (bỏ qua)."
-  else
-    as_user "$RD" --config "host=${RD_SERVER}" >/dev/null 2>&1 || warn "Không đặt được server (bỏ qua)."
-  fi
-fi
-
-log "Đặt mật khẩu cố định ..."
-as_user "$RD" --password "$PASSWORD" >/dev/null 2>&1 || warn "Lệnh --password báo lỗi — hãy đối chiếu trong app và đặt tay nếu cần."
 
 # ---------- 4. không cho máy ngủ ----------
 if [ "${RD_NO_PMSET:-0}" != "1" ]; then
@@ -219,6 +209,54 @@ else
   warn "  $RD"
 fi
 
+# ---------- 6b. ghi cấu hình: server riêng + mật khẩu cố định ----------
+# RustDesk 1.4 từ chối `--password` khi chưa cài service, nên ghi thẳng vào file cấu hình của user.
+CFG_DIR="$USER_HOME/Library/Preferences/com.carriez.RustDesk"
+CFG1="$CFG_DIR/RustDesk.toml"    # id, password
+CFG2="$CFG_DIR/RustDesk2.toml"   # [options] server, key
+for _ in 1 2 3 4 5 6 7 8 9 10; do [ -f "$CFG1" ] && break; sleep 1; done
+[ -f "$CFG1" ] || warn "Chưa thấy $CFG1 (app chưa tạo cấu hình) — vẫn tiếp tục ghi."
+
+log "Dừng RustDesk để ghi cấu hình ..."
+pkill -x RustDesk >/dev/null 2>&1 || true
+sleep 1
+mkdir -p "$CFG_DIR"
+
+# mật khẩu: thay dòng password = ... hoặc thêm mới
+if grep -q '^password = ' "$CFG1" 2>/dev/null; then
+  sed -i '' "s|^password = .*|password = '${PASSWORD}'|" "$CFG1"
+else
+  printf "password = '%s'\n" "$PASSWORD" >> "$CFG1"
+fi
+
+# server riêng: ghi vào [options] của RustDesk2.toml
+if [ -n "$RD_SERVER" ]; then
+  touch "$CFG2"
+  grep -q '^\[options\]' "$CFG2" || printf '\n[options]\n' >> "$CFG2"
+  TMP2="$(mktemp)"
+  grep -vE '^(custom-rendezvous-server|relay-server|api-server|key) = ' "$CFG2" > "$TMP2" || true
+  awk -v srv="$RD_SERVER" -v key="$RD_KEY" -v q="'" '
+    { print }
+    /^\[options\]/ && !done {
+      print "custom-rendezvous-server = " q srv q
+      print "relay-server = " q srv q
+      if (key != "") print "key = " q key q
+      done = 1
+    }' "$TMP2" > "$CFG2"
+  rm -f "$TMP2"
+  log "Trỏ về server riêng: $RD_SERVER"
+fi
+chown -R "$CONSOLE_USER" "$CFG_DIR"
+
+# xác minh đọc lại
+grep -q "^password = '${PASSWORD}'" "$CFG1" && log "Mật khẩu đã ghi vào cấu hình." || warn "KHÔNG xác minh được mật khẩu trong $CFG1 — kiểm tra tay."
+if [ -n "$RD_SERVER" ]; then
+  grep -q "^custom-rendezvous-server = '${RD_SERVER}'" "$CFG2" && log "Server đã ghi vào cấu hình." || warn "KHÔNG xác minh được server trong $CFG2."
+fi
+
+log "Mở lại RustDesk ..."
+launch_rd || warn "RustDesk không chạy lại được — mở tay từ Applications."
+
 log "Mở 3 cửa sổ Privacy — hãy GẠT CÔNG TẮC RustDesk ở cả 3 (nếu chưa thấy dòng RustDesk: bấm + → Applications → RustDesk):"
 for pane in Privacy_ScreenCapture Privacy_Accessibility Privacy_ListenEvent; do
   as_gui_user open "x-apple.systempreferences:com.apple.preference.security?${pane}" >/dev/null 2>&1 || true
@@ -243,6 +281,7 @@ echo "${C_B}================ HOÀN TẤT: ${MACHINE_NAME} ================${C_0}
 echo "  ID        : ${RD_ID}"
 echo "  Tên máy   : ${MACHINE_NAME}"
 echo "  Mật khẩu  : ${PASSWORD}"
+echo "  Server    : ${RD_SERVER:-công cộng (rustdesk.com)}"
 echo "  FileVault : ${FV}"
 if rd_running; then echo "  App       : đang chạy"; else echo "  App       : ${C_R}KHÔNG chạy${C_0} → mở tay từ Applications, nếu không Windows sẽ báo offline"; fi
 echo

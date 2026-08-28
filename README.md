@@ -57,7 +57,9 @@ curl -fsSL <URL> | sudo RD_PASSWORD='MatKhau123' bash -s -- "Mac-01"
 # Ghim phiên bản RustDesk cụ thể
 curl -fsSL <URL> | sudo RD_VERSION=1.4.0 bash -s -- "Mac-01"
 
-# Dùng server RustDesk tự host
+# Script mặc định trỏ về server riêng 45.77.71.138 (xem server/README.md). Muốn dùng server công cộng:
+curl -fsSL <URL> | sudo RD_SERVER= bash -s -- "Mac-01"
+# Hoặc server khác:
 curl -fsSL <URL> | sudo RD_SERVER=rd.congty.vn RD_KEY='<public key>' bash -s -- "Mac-01"
 
 # Không tắt chế độ ngủ của máy
@@ -69,6 +71,7 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 ## Phần 3 — Trên Windows
 
 12. Cài RustDesk: tải `.exe` từ <https://github.com/rustdesk/rustdesk/releases>.
+12b. Trỏ về server riêng (1 lần): ⚙ Settings → **Network** → Unlock → **ID server** `45.77.71.138`, **Relay server** `45.77.71.138`, **Key** `noUsY6djm6ymHXXS4vYyqNwNhgmXePerJa6TlPI62BU=`, API server để trống → Apply. Xem thêm [server/README.md](server/README.md).
 13. Với mỗi dòng trong Sheet: nhập **ID → Connect → dán mật khẩu → tick Remember password**.
 14. Kết nối được rồi thì bấm **ngôi sao** để ghim máy đó vào danh sách.
 15. Trong phiên, mở thanh công cụ → **Keyboard → Map mode**, để phím **Windows** đóng vai **Cmd**.
