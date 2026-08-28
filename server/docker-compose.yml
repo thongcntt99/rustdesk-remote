@@ -1,6 +1,7 @@
 # RustDesk Server (hbbs = ID/rendezvous, hbbr = relay) — dùng cho EasyPanel (service kiểu Compose) hoặc docker compose thường.
 #
-# Trước khi chạy: đổi RELAY_HOST thành IP public (hoặc domain) của máy chủ này.
+# Trước khi chạy: thay  YOUR_SERVER_IP  ở dòng "command: hbbs ..." bằng IP public (hoặc domain) của máy chủ này.
+#   (EasyPanel không nạp biến môi trường vào compose, nên phải ghi thẳng IP vào file.)
 # Sau khi chạy: public key nằm ở  ./data/id_ed25519.pub  (trên EasyPanel: Volumes → data → id_ed25519.pub,
 #   hoặc: docker exec rustdesk-hbbs cat /root/id_ed25519.pub)
 #
@@ -9,7 +10,7 @@ services:
   hbbs:
     image: rustdesk/rustdesk-server:latest
     container_name: rustdesk-hbbs
-    command: hbbs -r ${RELAY_HOST:?Đặt RELAY_HOST = IP public hoặc domain máy chủ}:21117 -k _
+    command: hbbs -r YOUR_SERVER_IP:21117 -k _
     network_mode: host
     volumes:
       - ./data:/root

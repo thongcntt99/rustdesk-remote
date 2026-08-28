@@ -17,7 +17,7 @@ Nếu nhà cung cấp có firewall riêng (Hetzner Cloud Firewall, Vultr, AWS Se
 1. Vào Project → **+ Service** → chọn **Compose**.
 2. Tên: `rustdesk`.
 3. Tab **Source** (hoặc Compose): dán toàn bộ nội dung file [docker-compose.yml](docker-compose.yml).
-4. Tab **Environment**: thêm `RELAY_HOST=<IP public máy chủ>` (ví dụ `RELAY_HOST=203.0.113.10`, hoặc domain trỏ về máy chủ).
+4. Trong nội dung vừa dán, sửa dòng `command: hbbs -r YOUR_SERVER_IP:21117 -k _` → thay `YOUR_SERVER_IP` bằng IP public của máy chủ (ví dụ `hbbs -r 203.0.113.10:21117 -k _`). Không dùng tab Environment — EasyPanel không nạp biến vào compose.
 5. **Deploy**. Chờ cả 2 container trạng thái Running.
 
 ## 3. Lấy public key
