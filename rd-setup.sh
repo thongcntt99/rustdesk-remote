@@ -22,6 +22,7 @@
 #   7. In ra ID ⇥ Tên ⇥ Mật khẩu để dán vào Google Sheet
 # =============================================================================
 set -euo pipefail
+RD_SETUP_VERSION="2026-08-28.3"
 
 # ---------- màu & log ----------
 if [ -t 1 ]; then
@@ -66,7 +67,7 @@ esac
 APP="/Applications/RustDesk.app"
 RD="$APP/Contents/MacOS/RustDesk"
 
-log "Máy: ${C_B}${MACHINE_NAME}${C_0}   User: ${CONSOLE_USER}   Kiến trúc: ${ARCH}"
+log "rd-setup v${RD_SETUP_VERSION}   Máy: ${C_B}${MACHINE_NAME}${C_0}   User: ${CONSOLE_USER}   Kiến trúc: ${ARCH}"
 
 # ---------- 1. tải & cài RustDesk ----------
 TMP="$(mktemp -d /tmp/rd-setup.XXXXXX)"
