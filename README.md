@@ -78,7 +78,7 @@ curl -fsSL <URL> | sudo RD_NO_PMSET=1 bash -s -- "Mac-01"
 15. Trong phiên, mở thanh công cụ → **Keyboard**: chọn **Map mode** và tick **Swap control-command key** → Ctrl+C/V/A/Z trên Windows thành Cmd+… trên Mac, các phím khác 1:1. Trong Terminal của Mac, muốn ngắt lệnh (Ctrl+C thật) thì bấm **Win+C**.
 16. Tối ưu hình: Display → Codec **VP9** (tránh AV1 trên Mac Intel), **Custom** quality ~50%, **FPS 15**, tick Adaptive bitrate; nếu Mac độ phân giải cao, Display → Resolution → 1920×1080.
 
-**Áp 15–16 cho tất cả máy một lượt:** đóng mọi phiên đang mở, rồi chạy `.	une.ps1` — nó ghi Map mode + Swap Ctrl↔Cmd / VP9 / 15 FPS / 50% vào cấu hình từng máy trong `machines.csv` (và mọi máy đã từng kết nối). `connect.ps1` cũng tự gọi `tune.ps1` trước khi mở phiên, nên dùng `connect.ps1` là không cần làm tay. Đổi lại: `.	une.ps1 -Mode map` hoặc `.	une.ps1 -Codec auto -Fps 30`.
+**Áp 15–16 cho tất cả máy một lượt:** đóng mọi phiên đang mở, rồi chạy `.	une.ps1` — nó ghi Map mode + Swap Ctrl↔Cmd / VP9 / 15 FPS / 50% vào cấu hình từng máy trong `machines.csv` (và mọi máy đã từng kết nối). `connect.ps1` cũng tự gọi `tune.ps1` trước khi mở phiên, nên dùng `connect.ps1` là không cần làm tay. Đổi lại: `.	une.ps1 -Mode translate -NoSwap` hoặc `.	une.ps1 -Codec auto -Fps 30`.
 
 **Cách nhanh hơn với `connect.ps1`:** điền `machines.csv`, rồi trong PowerShell:
 
