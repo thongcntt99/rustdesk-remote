@@ -42,62 +42,62 @@ public static class Typer {
 # ---- GUI ----
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Auto Typer"
-$form.Size = New-Object System.Drawing.Size(460, 300)
-$form.StartPosition = "CenterScreen"
-$form.FormBorderStyle = "FixedDialog"
-$form.MaximizeBox = $false
+$form.ClientSize = New-Object System.Drawing.Size(420, 96)
+$form.StartPosition = "Manual"
+$wa = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea   # vùng màn hình trừ taskbar
+$form.Add_Load({ $form.Location = New-Object System.Drawing.Point(($wa.Right - $form.Width - 8), ($wa.Bottom - $form.Height - 8)) })
+$form.FormBorderStyle = "FixedToolWindow"
 $form.TopMost = $true
-$form.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-
-$lblText = New-Object System.Windows.Forms.Label
-$lblText.Text = "Nội dung cần gõ:"
-$lblText.Location = New-Object System.Drawing.Point(12, 12)
-$lblText.AutoSize = $true
+$form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
 
 $txt = New-Object System.Windows.Forms.TextBox
-$txt.Multiline = $true
-$txt.AcceptsReturn = $true
-$txt.ScrollBars = "Vertical"
-$txt.Location = New-Object System.Drawing.Point(12, 36)
-$txt.Size = New-Object System.Drawing.Size(420, 90)
+$txt.Location = New-Object System.Drawing.Point(8, 8)
+$txt.Size = New-Object System.Drawing.Size(404, 23)
 $txt.Text = "type-this-line"
 
 $lblDelay = New-Object System.Windows.Forms.Label
-$lblDelay.Text = "Chờ (giây):"
-$lblDelay.Location = New-Object System.Drawing.Point(12, 140)
+$lblDelay.Text = "Chờ"
+$lblDelay.Location = New-Object System.Drawing.Point(8, 41)
 $lblDelay.AutoSize = $true
 
 $numDelay = New-Object System.Windows.Forms.NumericUpDown
-$numDelay.Location = New-Object System.Drawing.Point(100, 137)
-$numDelay.Size = New-Object System.Drawing.Size(60, 26)
+$numDelay.Location = New-Object System.Drawing.Point(38, 37)
+$numDelay.Size = New-Object System.Drawing.Size(46, 23)
 $numDelay.Minimum = 0; $numDelay.Maximum = 60; $numDelay.Value = 5
 
+$lblSec = New-Object System.Windows.Forms.Label
+$lblSec.Text = "s"
+$lblSec.Location = New-Object System.Drawing.Point(86, 41)
+$lblSec.AutoSize = $true
+
 $lblSpeed = New-Object System.Windows.Forms.Label
-$lblSpeed.Text = "Tốc độ (1–10):"
-$lblSpeed.Location = New-Object System.Drawing.Point(190, 140)
+$lblSpeed.Text = "Tốc độ"
+$lblSpeed.Location = New-Object System.Drawing.Point(108, 41)
 $lblSpeed.AutoSize = $true
 
 $numSpeed = New-Object System.Windows.Forms.NumericUpDown
-$numSpeed.Location = New-Object System.Drawing.Point(300, 137)
-$numSpeed.Size = New-Object System.Drawing.Size(60, 26)
+$numSpeed.Location = New-Object System.Drawing.Point(156, 37)
+$numSpeed.Size = New-Object System.Drawing.Size(46, 23)
 $numSpeed.Minimum = 1; $numSpeed.Maximum = 10; $numSpeed.Value = 5
 
 $chkEnter = New-Object System.Windows.Forms.CheckBox
-$chkEnter.Text = "Nhấn Enter sau khi gõ xong"
-$chkEnter.Location = New-Object System.Drawing.Point(12, 172)
+$chkEnter.Text = "Enter"
+$chkEnter.Location = New-Object System.Drawing.Point(214, 39)
 $chkEnter.AutoSize = $true
 
 $btn = New-Object System.Windows.Forms.Button
 $btn.Text = "Bắt đầu"
-$btn.Location = New-Object System.Drawing.Point(12, 205)
-$btn.Size = New-Object System.Drawing.Size(120, 34)
+$btn.Location = New-Object System.Drawing.Point(330, 35)
+$btn.Size = New-Object System.Drawing.Size(82, 26)
 
 $lblStatus = New-Object System.Windows.Forms.Label
-$lblStatus.Text = "Bấm Bắt đầu, rồi click vào cửa sổ đích trước khi hết giờ. Giữ Esc để dừng."
-$lblStatus.Location = New-Object System.Drawing.Point(145, 205)
-$lblStatus.Size = New-Object System.Drawing.Size(290, 40)
+$lblStatus.Text = "Bấm Bắt đầu rồi click vào cửa sổ đích. Giữ Esc để dừng."
+$lblStatus.ForeColor = [System.Drawing.Color]::DimGray
+$lblStatus.Location = New-Object System.Drawing.Point(8, 70)
+$lblStatus.Size = New-Object System.Drawing.Size(404, 18)
 
-$form.Controls.AddRange(@($lblText, $txt, $lblDelay, $numDelay, $lblSpeed, $numSpeed, $chkEnter, $btn, $lblStatus))
+$form.AcceptButton = $btn
+$form.Controls.AddRange(@($txt, $lblDelay, $numDelay, $lblSec, $lblSpeed, $numSpeed, $chkEnter, $btn, $lblStatus))
 
 # ---- Logic ----
 $script:remaining = 0
@@ -132,7 +132,7 @@ function Invoke-Typing {
 $timer.Add_Tick({
     $script:remaining--
     if ($script:remaining -gt 0) {
-        $lblStatus.Text = "Gõ sau $($script:remaining)s — click vào cửa sổ đích ngay!"
+        $lblStatus.Text = "Gõ sau $($script:remaining)s — click vào cửa sổ đích!"
         return
     }
     $timer.Stop()
@@ -144,7 +144,7 @@ $btn.Add_Click({
     Set-Busy $true
     $script:remaining = [int]$numDelay.Value
     if ($script:remaining -le 0) { Invoke-Typing; return }
-    $lblStatus.Text = "Gõ sau $($script:remaining)s — click vào cửa sổ đích ngay!"
+    $lblStatus.Text = "Gõ sau $($script:remaining)s — click vào cửa sổ đích!"
     $timer.Start()
 })
 
